@@ -67,13 +67,10 @@ Enable Pages in the repository settings:
 
 The deployment URL will appear in the Actions run summary under the “Deploy to GitHub Pages” step and in the repository “Environments → github-pages”.
 
-Custom domain (free via js.org, optional):
-- This repo is configured with `otkai.js.org` in the `CNAME` file. To activate, request a free subdomain from js.org:
-	1. Fork `https://github.com/js-org/js.org` and edit `cnames_active.js` to add: `"otkai": "coolkid547.github.io/Oregon-Trail-KaiOS-Edition"`.
-	2. Open a PR with your change and a brief description linking to this repository.
-	3. After the PR is merged, js.org will add DNS for `otkai.js.org`. GitHub Pages will serve your site at that subdomain.
-  
-Alternatively, you can remove the `CNAME` file and use the default Pages URL: `https://coolkid547.github.io/Oregon-Trail-KaiOS-Edition/`.
+Default GitHub Pages domain:
+- This site uses the default Pages URL:
+	`https://coolkid547.github.io/Oregon-Trail-KaiOS-Edition/`
+	No custom domain is configured (the `CNAME` file has been removed).
 
 Workflow publishes only site files:
 - The Pages workflow builds a `dist/` directory containing `index.html`, `manifest.webapp`, `.nojekyll`, and the `css/`, `js/`, `icons/`, and `assets` folders, then deploys that artifact. Other repo files (like README) are excluded from the published site.
