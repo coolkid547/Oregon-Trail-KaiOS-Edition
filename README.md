@@ -13,8 +13,8 @@ A small, open prototype intended to run on KaiOS devices or in a desktop browser
 1. Start a simple HTTP server from the project root:
 
 ```bash
-cd /workspaces/Oregon-Trail-KaiOS-Edition
-python3 -m http.server 8000
+chmod +x ./scripts/serve.sh
+./scripts/serve.sh 8000
 ```
 
 2. Open `http://localhost:8000` in a browser on your development machine or device.
@@ -52,80 +52,31 @@ Use keys `1`, `2`, `3` to choose options.
 - The app uses simple WebAudio melodies for win/secret events and small tones for actions. Browsers may require a user gesture before audio plays.
 - Unlocking the secret menu shows a brief animation overlay and an editable sprite.
 
-## Azure Pipelines deployment
+## GitHub Pages deployment
 
-This project includes an `azure-pipelines.yml` that uploads the site to an Azure Storage static website using the `AzureCLI@2` task.
+This project is now set up to deploy via GitHub Pages using GitHub Actions (`.github/workflows/pages.yml`). It publishes the repository root as a static site.
 
-What you need:
-- An Azure subscription with a Storage Account created. Enable the static website feature or let the pipeline enable it for you.
-- An Azure DevOps project and a service connection (Azure Resource Manager) with rights to the subscription. Create a service connection and name it (for example) `AzureServiceConnection`.
+How it works:
+- On every push to `main`, the workflow uploads the site content and deploys to GitHub Pages.
+- No build step is required; it serves `index.html` and the `css`, `js`, `icons`, and `assets` folders.
 
-How to configure the pipeline:
+Enable Pages in the repository settings:
+1. In GitHub, open your repository → Settings → Pages.
+2. Set “Build and deployment” → Source to “GitHub Actions”.
+3. Save. After the next push to `main`, Pages will publish.
 
-1. In Azure DevOps create a new pipeline pointing at this repository and use the existing `azure-pipelines.yml` file.
-2. In the pipeline variables set `AZURE_STORAGE_ACCOUNT` to your storage account name (and optionally `AZURE_RESOURCE_GROUP`).
-3. Ensure the pipeline has access to the service connection name you used in the YAML (`AzureServiceConnection`), or update `azure-pipelines.yml` to the correct service connection name.
-4. Run the pipeline. It will enable static website hosting and push files to the `$web` container.
+The deployment URL will appear in the Actions run summary under the “Deploy to GitHub Pages” step and in the repository “Environments → github-pages”.
 
-Local deploy helper:
+Custom domain (free via js.org, optional):
+- This repo is configured with `otkai.js.org` in the `CNAME` file. To activate, request a free subdomain from js.org:
+	1. Fork `https://github.com/js-org/js.org` and edit `cnames_active.js` to add: `"otkai": "coolkid547.github.io/Oregon-Trail-KaiOS-Edition"`.
+	2. Open a PR with your change and a brief description linking to this repository.
+	3. After the PR is merged, js.org will add DNS for `otkai.js.org`. GitHub Pages will serve your site at that subdomain.
+  
+Alternatively, you can remove the `CNAME` file and use the default Pages URL: `https://coolkid547.github.io/Oregon-Trail-KaiOS-Edition/`.
 
-You can also deploy locally with the Azure CLI using the included script. Set `AZURE_STORAGE_ACCOUNT` and run:
-
-```bash
-chmod +x ./scripts/azure_deploy.sh
-AZURE_STORAGE_ACCOUNT=myaccount ./scripts/azure_deploy.sh
-```
-
-This requires you to be logged in with `az login` and have contributor privileges on the storage account.
-
-Alternative: Python wrapper (no chmod needed)
-
-If you do not want to change file permissions or prefer a Python option, there is a wrapper that uploads files using the Azure Storage SDK without needing the `scripts/azure_deploy.sh` executable bit.
-
-1. Install dependencies:
-
-```bash
-python3 -m pip install -r requirements.txt
-```
-
-2. Run with a connection string:
-
-```bash
-AZURE_STORAGE_CONNECTION_STRING="<connection string>" python3 scripts/azure_deploy_api.py
-```
-
-Or run with account and key:
-
-```bash
-export AZURE_STORAGE_ACCOUNT=myaccount
-export AZURE_STORAGE_KEY=<account key>
-python3 scripts/azure_deploy_api.py
-```
-
-This uploads `index.html`, `manifest.webapp`, and the `css`, `js`, `icons`, and `assets` folders into the `$web` container and sets content types.
-
-## Provisioning infrastructure from the pipeline
-
-You can optionally let the pipeline provision a Storage Account for you using the included ARM template. To enable this set the pipeline variable `DEPLOY_INFRA` to `true` and configure the following pipeline variables:
-
-- `AZURE_RESOURCE_GROUP` - the resource group name to deploy into (the pipeline will not create a resource group for you; create it beforehand or change the ARM task to create it).
-- `AZURE_STORAGE_ACCOUNT` - the storage account name to create (must be globally unique).
-
-Steps to provision via pipeline:
-1. Create a Resource Group in your subscription (or change the ARM task to create one):
-
-```bash
-az group create -n myResourceGroup -l eastus
-```
-
-2. In Azure DevOps, create a pipeline from this repo and set variables:
- - `AZURE_RESOURCE_GROUP` = `myResourceGroup`
- - `AZURE_STORAGE_ACCOUNT` = desired storage account name
- - `DEPLOY_INFRA` = `true`
-3. Ensure the pipeline's service connection (ARM) has permission to create resources in the subscription.
-4. Run the pipeline. The `ProvisionInfra` stage will deploy the ARM template, then the `Deploy` stage will enable static website and upload files.
-
-If you want me to also add a step that creates the resource group automatically in the pipeline, I can add that as well.
+Workflow publishes only site files:
+- The Pages workflow builds a `dist/` directory containing `index.html`, `manifest.webapp`, `.nojekyll`, and the `css/`, `js/`, `icons/`, and `assets` folders, then deploys that artifact. Other repo files (like README) are excluded from the published site.
 
 
 
@@ -144,4 +95,5 @@ zip -r oregon-trail-kaios.zip index.html css js manifest.webapp icons README.md
 ## Notes & next steps
 
 - This is a prototype. Next improvements: deeper event trees, art and audio, save state, multiple routes.
+- GitHub Pages replaces Azure hosting; Azure-specific files have been removed.
 - No em-dash characters were used in code files.
