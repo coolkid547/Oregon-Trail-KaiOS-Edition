@@ -29,6 +29,21 @@ jobs:
           cp -vr icons dist/
           cp -vr assets dist/
 
+      - name: Validate CNAME (non-blocking)
+        run: |
+          if [[ -f CNAME ]]; then
+            cname=$(cat CNAME | tr -d '\n' | tr -d '\r')
+            echo "Detected CNAME: $cname"
+            if [[ "$cname" == "your.custom.domain" ]]; then
+              echo "::warning::CNAME still set to placeholder. Update CNAME to your domain or remove it to use default Pages URL."
+            else
+              echo "Attempting to fetch homepage via: https://$cname (this may fail if DNS not propagated yet)"
+              curl -I --max-time 10 "https://$cname" || echo "::warning::CNAME domain not reachable yet (likely DNS propagation). Deployment will continue."
+            fi
+          else
+            echo "No CNAME file present. Using default GitHub Pages domain."
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
