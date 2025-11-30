@@ -1,0 +1,35 @@
+/* Basic KaiOS-friendly small-screen styles */
+:root{
+  --bg:#f7f7ef;
+  --panel:#fff;
+  --accent:#0b66c2;
+  --muted:#666;
+  --danger:#c23b3b;
+}
+html,body{height:100%;margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#111}
+.screen{display:flex;flex-direction:column;height:100vh;max-width:320px;margin:0 auto;border:1px solid #ddd}
+header{background:var(--panel);padding:8px 10px;border-bottom:1px solid #e5e5e5}
+header h1{font-size:14px;margin:0}
+.meta{font-size:11px;color:var(--muted);margin-top:4px}
+main{flex:1;padding:10px;overflow:auto;font-size:13px}
+.status{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.card{background:var(--panel);border:1px solid #e5e5e5;padding:6px;border-radius:3px}
+.choices{margin-top:8px}
+.choice{display:block;padding:8px;background:#f0f6ff;border:1px solid #d7e8ff;margin-bottom:6px;border-radius:4px}
+.choice small{color:var(--muted);display:block;font-size:11px}
+footer{height:36px;background:#f2f2f2;border-top:1px solid #e5e5e5;display:flex;align-items:center;justify-content:space-between;padding:0 8px;font-size:13px}
+.softkey{color:var(--accent)}
+.danger{color:var(--danger)}
+
+/* Small screens */
+@media (max-width:300px){
+  header h1{font-size:13px}
+}
+
+/* Secret unlock animation and sprite */
+.secret-unlock{position:fixed;left:50%;top:20%;transform:translateX(-50%);z-index:40;padding:8px;background:rgba(255,255,255,0.95);border-radius:6px;border:1px solid #ddd;animation:pop 600ms ease-out}
+@keyframes pop{0%{transform:translateX(-50%) scale(0.6);opacity:0}60%{transform:translateX(-50%) scale(1.08);opacity:1}100%{transform:translateX(-50%) scale(1);opacity:1}}
+.slot-row{display:flex;gap:6px;align-items:center;justify-content:space-between}
+.secret-form .form-row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.secret-form input{width:90px}
+

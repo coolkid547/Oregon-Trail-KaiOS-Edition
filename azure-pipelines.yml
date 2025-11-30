@@ -1,0 +1,83 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # Set these in the pipeline variables or replace here
+  AZURE_STORAGE_ACCOUNT: ''
+  AZURE_RESOURCE_GROUP: ''
+  DEPLOY_INFRA: 'false' # set to 'true' to provision infra using ARM template
+
+stages:
+  - stage: ProvisionInfra
+    displayName: Provision infrastructure (optional)
+    condition: eq(variables['DEPLOY_INFRA'], 'true')
+    jobs:
+      - deployment: DeployInfra
+        displayName: Deploy ARM template
+        environment: 'dev'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: AzureResourceManagerTemplateDeployment@3
+                  displayName: 'Deploy storage account ARM template'
+                  inputs:
+                    azureResourceManagerConnection: 'AzureServiceConnection'
+                    action: 'Create Or Update Resource Group'
+                    resourceGroupName: '$(AZURE_RESOURCE_GROUP)'
+                    location: 'eastus'
+                    templateLocation: 'Linked artifact'
+                    csmFile: 'infra/storage-account-template.json'
+                    deploymentMode: 'Incremental'
+                    overrideParameters: '-storageAccountName $(AZURE_STORAGE_ACCOUNT)'
+
+  - stage: Deploy
+    displayName: Deploy static site to Azure Storage
+    dependsOn: ProvisionInfra
+    jobs:
+      - job: DeployToStorage
+        displayName: Upload files to Azure Storage static website
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            displayName: 'Deploy to Azure Storage static website'
+            inputs:
+              azureSubscription: 'AzureServiceConnection'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                set -euo pipefail
+                echo "Using storage account: $AZURE_STORAGE_ACCOUNT"
+                if [ -z "$AZURE_STORAGE_ACCOUNT" ]; then
+                  echo 'Error: AZURE_STORAGE_ACCOUNT variable is empty. Set it in the pipeline variables.'
+                  exit 1
+                fi
+
+                # Enable static website hosting
+                az storage blob service-properties update \
+                  --account-name "$AZURE_STORAGE_ACCOUNT" \
+                  --static-website --index-document index.html --error-document index.html
+
+                # Upload selected files to the $web container
+                echo 'Uploading site files to $web container...'
+                az storage blob upload-batch \
+                  --account-name "$AZURE_STORAGE_ACCOUNT" \
+                  -s "$(System.DefaultWorkingDirectory)" -d '$web' \
+                  --pattern "index.html" \
+                  --pattern "css/*" \
+                  --pattern "js/*" \
+                  --pattern "icons/*" \
+                  --pattern "assets/*" \
+                  --pattern "manifest.webapp" \
+                  --overwrite
+
+                echo 'Deployment complete.'

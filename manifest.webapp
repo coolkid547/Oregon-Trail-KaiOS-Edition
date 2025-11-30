@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "name": "Oregon Trail:KaiOS Edition",
+  "description": "A compact Oregon Trail style game for KaiOS devices.",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "ChingaApps"
+  },
+  "icons": {
+    "60": "/icons/icon-60.svg",
+    "120": "/icons/icon-120.svg"
+  },
+  "default_locale": "en",
+  "type": "web"
+}
